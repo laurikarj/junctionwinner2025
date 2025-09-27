@@ -123,6 +123,7 @@ function App() {
                                     style={{ cursor: 'pointer' }}
                                     onClick={e => {
                                         setPage('map');
+                                        if (window.setShowSiteDialog) window.setShowSiteDialog(false);
                                         setProfileMenuOpen(true);
                                     }}
                                 >
@@ -143,6 +144,7 @@ function App() {
                                         setProfile={setProfile}
                                         profileMenuOpen={profileMenuOpen}
                                         setProfileMenuOpen={setProfileMenuOpen}
+                                        setShowSiteDialog={fn => { window.setShowSiteDialog = fn; }}
                                     />
                                 )}
                 {page === 'analytics' && (
