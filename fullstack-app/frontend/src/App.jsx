@@ -1,6 +1,8 @@
 import React from 'react';
+// FontAwesome search icon is used directly in JSX
 import AnalyticsPage from './components/AnalyticsPage';
 import MapView from './components/MapView';
+// import InfoCards from './components/InfoCards';
 import veologo from './veologo.png';
 import './App.css';
 
@@ -13,6 +15,8 @@ function App() {
     const [currentPosition, setCurrentPosition] = React.useState(null);
     const [menuOpen, setMenuOpen] = React.useState(false);
     const [page, setPage] = React.useState('map');
+    // Searchbar toggle
+    const [showSearchBar, setShowSearchBar] = React.useState(false);
     // List of Finnish presidents
     const finnishPresidents = [
         'Kaarlo Juho Ståhlberg',
@@ -67,11 +71,13 @@ function App() {
         }
     }, []);
     // Set overflowY: auto only for analytics page, otherwise hidden
+    const headerHeight = 64;
     const mainDivStyle = {
         fontFamily: 'Segoe UI, Arial, sans-serif',
         background: '#f5f7fa',
         minHeight: '100vh',
         overflow: 'hidden',
+        paddingTop: headerHeight,
     };
     const analyticsContainerStyle = {
         height: 'calc(100vh - 73px)', // 73px = header height
@@ -81,8 +87,8 @@ function App() {
         <>
             {/* CSS moved to App.css */}
             <div style={mainDivStyle}>
-                <header style={{ background: '#009fe3', color: '#fff', padding: '8px', boxShadow: '0 6px 24px 0 rgba(0,0,0,0.18)', borderBottom: '1px solid #007bb8', zIndex: 1000, position: 'relative', appRegion: 'drag', textSelect: 'none' }}>
-                    <div style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'left' }}>
+                <header style={{ background: '#009fe3', color: '#fff', padding: '8px 8px 3px 8px', boxShadow: '0 6px 24px 0 rgba(0,0,0,0.18)', borderBottom: '1px solid #007bb8', zIndex: 1000, position: 'fixed', top: 0, left: 0, width: '100%', appRegion: 'drag', textSelect: 'none', minHeight: headerHeight }}>
+                    <div style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'left', position: 'relative' }}>
                         <div className={`hamburger${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen((open) => !open)} style={{ appRegion: 'no-drag' }}>
                                 <span></span>
                                 <span></span>
@@ -91,7 +97,36 @@ function App() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 3001 }}>
                             <img src={veologo} alt="VEO Logo" style={{ height: 48, width: 'auto', display: 'block', background: '#fff', padding: 4, borderRadius: 8, boxShadow: '0 1.5px 8px 0 rgba(0,0,0,0.13)' }} />
                             <span className="powerpulse-title" style={{ fontSize: 36, fontWeight: 700, letterSpacing: 2, fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif', marginRight: 20 }}>PowerPulse</span>
+
                         </div>
+                                            {/* Search icon button, bottom right of header */}
+                    <button
+                        aria-label="Toggle search bar"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#fff',
+                            fontSize: 26,
+                            cursor: 'pointer',
+                            padding: 4,
+                            borderRadius: 6,
+                            transition: 'background 0.2s',
+                            position: 'absolute',
+                            right: 16,
+                            bottom: -10,
+                            zIndex: 4002,
+                            appRegion: 'no-drag',
+                            height: 40,
+                            width: 40,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                        onClick={() => setShowSearchBar(v => !v)}
+                        title="Search"
+                    >
+                        <i className="fa fa-search" style={{ fontSize: 24, color: '#fff', margin: 0 }}></i>
+                    </button>
                         <nav style={{ position: 'relative' }}>
                             <ul
                                 className={`powerpulse-menu${menuOpen ? ' open' : ''}`}
@@ -118,7 +153,7 @@ function App() {
                                 >
                                     Analytics
                                 </li>
-                                <li style={{ cursor: 'pointer' }}>Settings</li>
+                                 {/* <li style={{ cursor: 'pointer' }}>Settings</li> */}
                                 <li
                                     style={{ cursor: 'pointer' }}
                                     onClick={e => {
@@ -133,20 +168,24 @@ function App() {
                         </nav>
                     </div>
                 </header>
-                                {page === 'map' && (
-                                    <MapView
-                                        fabOpen={fabOpen}
-                                        setFabOpen={setFabOpen}
-                                        currentPosition={currentPosition}
-                                        setCurrentPosition={setCurrentPosition}
-                                        menuOpen={menuOpen}
-                                        profile={profile}
-                                        setProfile={setProfile}
-                                        profileMenuOpen={profileMenuOpen}
-                                        setProfileMenuOpen={setProfileMenuOpen}
-                                        setShowSiteDialog={fn => { window.setShowSiteDialog = fn; }}
-                                    />
-                                )}
+                {page === 'map' && (
+                    <>
+                        <MapView
+                            fabOpen={fabOpen}
+                            setFabOpen={setFabOpen}
+                            currentPosition={currentPosition}
+                            setCurrentPosition={setCurrentPosition}
+                            menuOpen={menuOpen}
+                            profile={profile}
+                            setProfile={setProfile}
+                            profileMenuOpen={profileMenuOpen}
+                            setProfileMenuOpen={setProfileMenuOpen}
+                            setShowSiteDialog={fn => { window.setShowSiteDialog = fn; }}
+                            showSearchBar={showSearchBar}
+                            setShowSearchBar={setShowSearchBar}
+                        />
+                    </>
+                )}
                 {page === 'analytics' && (
                     <div style={analyticsContainerStyle}>
                         <AnalyticsPage />

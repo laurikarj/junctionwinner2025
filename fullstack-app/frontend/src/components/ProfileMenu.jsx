@@ -24,6 +24,7 @@ export default function ProfileMenu({
                 maxWidth: 380,
                 cursor: 'default'
             }}
+            onClick={e => e.stopPropagation()}
         >
             <button onClick={() => setProfileMenuOpen(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', fontSize: 22, color: '#009fe3', cursor: 'pointer', fontWeight: 700, lineHeight: 1 }} aria-label="Close profile menu">&times;</button>
             <h2 style={{ margin: '0 0 18px 0', fontSize: 24, color: '#009fe3', fontWeight: 700 }}>Profile</h2>
