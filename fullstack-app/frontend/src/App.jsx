@@ -118,7 +118,7 @@ const menuHoverStyle = `
     @media (max-width: 1000px) {
         .powerpulse-menu {
             display: flex !important;
-            position: fixed;
+            position: fixed !important;
             top: 0;
             left: 0;
             width: 100vw;
@@ -149,10 +149,9 @@ const menuHoverStyle = `
         }
         .hamburger {
             display: flex;
-            position: fixed;
-            top: 20px;
-            right: 24px;
             z-index: 3000;
+            margin-right: 20px;
+            margin-left: 10px;
         }
     }
 `;
@@ -364,7 +363,7 @@ function AnalyticsPage() {
 function App() {
     const [currentPosition, setCurrentPosition] = React.useState(null);
     const [menuOpen, setMenuOpen] = React.useState(false);
-    const [page, setPage] = React.useState('dashboard');
+    const [page, setPage] = React.useState('map');
     // List of Finnish presidents
     const finnishPresidents = [
         'Kaarlo Juho Ståhlberg',
@@ -381,10 +380,10 @@ function App() {
         'Sauli Niinistö',
         'Alexander Stubb'
     ];
-    // Profile state for icon color and name
+    // Profile state for icon color (hue) and name
     const [profile, setProfile] = React.useState({
         name: '',
-        color: '#009fe3',
+        hue: 200, // default hue (blue)
     });
     const [profileMenuOpen, setProfileMenuOpen] = React.useState(false);
     // Set default name to a random Finnish president on first render
@@ -399,8 +398,9 @@ function App() {
         // eslint-disable-next-line
     }, []);
     // Custom FontAwesome person marker icon (fa-person)
+    const markerColor = `hsl(${profile.hue}, 85%, 48%)`;
     const fontAwesomeIcon = new L.DivIcon({
-        html: `<i class="fa-solid fa-person" style="color:${profile.color};font-size:2rem;text-shadow:0 0 8px #fff, 0 0 12px #fff;"></i>`,
+        html: `<i class="fa-solid fa-person" style="color:${markerColor};font-size:2rem;text-shadow:0 0 8px #fff, 0 0 12px #fff;"></i>`,
         iconSize: [32, 32],
         className: 'fa-marker-icon',
         iconAnchor: [16, 32],
@@ -425,36 +425,74 @@ function App() {
             );
         }
     }, []);
+    // Set overflowY: auto only for analytics page, otherwise hidden
+    const mainDivStyle = {
+        fontFamily: 'Segoe UI, Arial, sans-serif',
+        background: '#f5f7fa',
+        minHeight: '100vh',
+        overflow: 'hidden',
+    };
+    const analyticsContainerStyle = {
+        height: 'calc(100vh - 73px)', // 73px = header height
+        overflowY: 'auto',
+    };
     return (
         <>
             <style>{menuHoverStyle}</style>
-            <div style={{ fontFamily: 'Segoe UI, Arial, sans-serif', background: '#f5f7fa', minHeight: '100vh', overflow: 'hidden' }}>
-                <header style={{ background: '#009fe3', color: '#fff', padding: '8px', boxShadow: '0 6px 24px 0 rgba(0,0,0,0.18)', borderBottom: '1px solid #007bb8', zIndex: 1000, position: 'relative' }}>
-                    <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 3001 }}>
-                            <img src={veologo} alt="VEO Logo" style={{ height: 48, width: 'auto', display: 'block', background: '#fff', padding: 4, borderRadius: 8, boxShadow: '0 1.5px 8px 0 rgba(0,0,0,0.13)' }} />
-                            <span className="powerpulse-title" style={{ fontSize: 36, fontWeight: 700, letterSpacing: 2, fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif' }}>PowerPulse</span>
-                        </div>
-                        <nav style={{ position: 'relative' }}>
-                            <div className={`hamburger${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen((open) => !open)}>
+            <div style={mainDivStyle}>
+                <header style={{ background: '#009fe3', color: '#fff', padding: '8px', boxShadow: '0 6px 24px 0 rgba(0,0,0,0.18)', borderBottom: '1px solid #007bb8', zIndex: 1000, position: 'relative', appRegion: 'drag', textSelect: 'none' }}>
+                    <div style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'left' }}>
+                        <div className={`hamburger${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen((open) => !open)} style={{ appRegion: 'no-drag' }}>
                                 <span></span>
                                 <span></span>
                                 <span></span>
                             </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative', zIndex: 3001 }}>
+                            <img src={veologo} alt="VEO Logo" style={{ height: 48, width: 'auto', display: 'block', background: '#fff', padding: 4, borderRadius: 8, boxShadow: '0 1.5px 8px 0 rgba(0,0,0,0.13)' }} />
+                            <span className="powerpulse-title" style={{ fontSize: 36, fontWeight: 700, letterSpacing: 2, fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif', marginRight: 20 }}>PowerPulse</span>
+                        </div>
+                        <nav style={{ position: 'relative' }}>
                             <ul
                                 className={`powerpulse-menu${menuOpen ? ' open' : ''}`}
-                                style={{ display: 'flex', gap: 32, listStyle: 'none', margin: 0, padding: 0, fontSize: 18 }}
+                                style={{ display: 'flex', gap: 32, listStyle: 'none', margin: 0, padding: 0, fontSize: 18, appRegion: 'no-drag', position: 'relative', top: 5 }}
                                 onClick={() => setMenuOpen(false)}
                             >
-                                <li style={{ cursor: 'pointer' }} onClick={() => setPage('dashboard')}>Dashboard</li>
-                                <li style={{ cursor: 'pointer' }} onClick={() => setPage('analytics')}>Analytics</li>
+                                <li
+                                    style={{
+                                        cursor: 'pointer',
+                                        fontWeight: page === 'map' ? 700 : 400,
+                                        opacity: page === 'map' ? 1 : 0.85
+                                    }}
+                                    onClick={() => setPage('map')}
+                                >
+                                    Map
+                                </li>
+                                <li
+                                    style={{
+                                        cursor: 'pointer',
+                                        fontWeight: page === 'analytics' ? 700 : 400,
+                                        opacity: page === 'analytics' ? 1 : 0.85
+                                    }}
+                                    onClick={() => setPage('analytics')}
+                                >
+                                    Analytics
+                                </li>
                                 <li style={{ cursor: 'pointer' }}>Settings</li>
-                                <li style={{ cursor: 'pointer' }} onClick={e => {setProfileMenuOpen(v => !v); }}>Profile</li>
+                                <li
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={e => {
+                                        setPage('map');
+                                        setProfileMenuOpen(true);
+                                    }}
+                                >
+                                    Profile
+                                </li>
                             </ul>
                         </nav>
                     </div>
                 </header>
-                {page === 'dashboard' && (
+                                {page === 'map' && (
+                                    // ...existing code...
                   <div
                     key={`dashboard-map-${page}-${currentPosition ? currentPosition.join('-') : 'default'}`}
                     style={{ width: '100%', height: 'calc(100vh - 73px)', margin: 0, padding: 0, overflow: 'hidden' }}
@@ -507,7 +545,7 @@ function App() {
                             <div style={{ marginBottom: 18 }}>
                                 <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Email</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <span style={{ fontSize: 16, color: '#333', flex: 1 }}>{profile.email || 'your@email.com'}</span>
+                                    <span style={{ fontSize: 16, color: '#333', flex: 1 }}>{profile.name.split(' ')[0].toLowerCase()+'@veo.fi'}</span>
                                     <button style={{ padding: '6px 14px', background: '#e6f4fa', color: '#009fe3', border: 'none', borderRadius: 5, fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>Change Email</button>
                                 </div>
                             </div>
@@ -517,10 +555,22 @@ function App() {
                             <div style={{ marginBottom: 18 }}>
                                 <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Marker color</label>
                                 <input
-                                    type="color"
-                                    value={profile.color}
-                                    onChange={e => setProfile(p => ({ ...p, color: e.target.value }))}
-                                    style={{ width: 40, height: 40, border: 'none', background: 'none', verticalAlign: 'middle', cursor: 'pointer' }}
+                                    type="range"
+                                    min="0"
+                                    max="360"
+                                    value={profile.hue}
+                                    onChange={e => setProfile(p => ({ ...p, hue: Number(e.target.value) }))}
+                                    style={{
+                                        width: 120,
+                                        verticalAlign: 'middle',
+                                        cursor: 'pointer',
+                                        accentColor: markerColor, // for modern browsers
+                                        background: `linear-gradient(90deg, hsl(0,85%,48%) 0%, hsl(360,85%,48%) 100%)`,
+                                        borderRadius: 6,
+                                        height: 8,
+                                        outline: 'none',
+                                        border: '1px solid #ccc',
+                                    }}
                                 />
                             </div>
                             <button
@@ -533,7 +583,11 @@ function App() {
                     )}
                   </div>
                 )}
-                {page === 'analytics' && <AnalyticsPage />}
+                                {page === 'analytics' && (
+                                    <div style={analyticsContainerStyle}>
+                                        <AnalyticsPage />
+                                    </div>
+                                )}
             </div>
         </>
     );
