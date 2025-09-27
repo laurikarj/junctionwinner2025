@@ -3,4 +3,5 @@
 <ul>
   <li>Lauri Karjalainen</li>
   <li>Veijo Karjalainen</li>
+  <li>ChatGippity</li>
 </ul>
