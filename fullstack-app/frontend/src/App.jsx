@@ -22,6 +22,25 @@ const menuHoverStyle = `
         .powerpulse-title {
             display: none !important;
         }
+        .profile-menu-fullscreen {
+            position: fixed !important;
+            position: fixed !important;
+            top: 73px !important; /* header height (smaller screens) */
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            height: calc(100vh - 73px) !important;
+            min-width: unset !important;
+            max-width: unset !important;
+            border-radius: 0 !important;
+            padding: 32px 12px 24px 12px !important;
+            box-shadow: none !important;
+            z-index: 4000 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            overflow-y: auto !important;
+        }
     }
     .leaflet-hide-controls .leaflet-control-container {
         display: none !important;
@@ -149,16 +168,46 @@ function App() {
             document.body.classList.remove('leaflet-hide-controls');
         }
     }, [menuOpen]);
+
+    // List of Finnish presidents
+    const finnishPresidents = [
+        'Kaarlo Juho Ståhlberg',
+        'Lauri Kristian Relander',
+        'Pehr Evind Svinhufvud',
+        'Kyösti Kallio',
+        'Risto Ryti',
+        'Carl Gustaf Emil Mannerheim',
+        'Juho Kusti Paasikivi',
+        'Urho Kekkonen',
+        'Mauno Koivisto',
+        'Martti Ahtisaari',
+        'Tarja Halonen',
+        'Sauli Niinistö',
+        'Alexander Stubb'
+    ];
+
     // Profile state for icon color and name
     const [profile, setProfile] = useState({
-        name: 'You',
+        name: '',
         color: '#009fe3',
     });
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
-    // Custom FontAwesome person marker icon
+    // Set default name to a random Finnish president on first render
+    useEffect(() => {
+        setProfile(p => {
+            if (!p.name) {
+                const randomPresident = finnishPresidents[Math.floor(Math.random() * finnishPresidents.length)];
+                return { ...p, name: randomPresident };
+            }
+            return p;
+        });
+        // eslint-disable-next-line
+    }, []);
+
+    // Custom FontAwesome person marker icon (fa-person)
     const fontAwesomeIcon = new L.DivIcon({
-        html: `<i class="fas fa-user-circle" style="color:${profile.color};font-size:2rem;text-shadow:0 0 8px #fff, 0 0 12px #fff;"></i>`,
+        html: `<i class="fa-solid fa-person" style="color:${profile.color};font-size:2rem;text-shadow:0 0 8px #fff, 0 0 12px #fff;"></i>`,
         iconSize: [32, 32],
         className: 'fa-marker-icon',
         iconAnchor: [16, 32],
@@ -202,7 +251,7 @@ function App() {
                                 <li style={{ cursor: 'pointer' }}>Dashboard</li>
                                 <li style={{ cursor: 'pointer' }}>Analytics</li>
                                 <li style={{ cursor: 'pointer' }}>Settings</li>
-                                <li style={{ cursor: 'pointer' }} onClick={e => { e.stopPropagation(); setProfileMenuOpen(v => !v); }}>Profile</li>
+                                <li style={{ cursor: 'pointer' }} onClick={e => {setProfileMenuOpen(v => !v); }}>Profile</li>
                             </ul>
                         </nav>
                     </div>
@@ -217,11 +266,27 @@ function App() {
                             <>
                                 <SetViewToCurrentLocation position={currentPosition} />
                                 <Marker position={currentPosition} icon={fontAwesomeIcon}>
-                                    <Popup>{profile.name}</Popup>
+                                    <Popup>{'You: ' + profile.name}</Popup>
                                 </Marker>
             {/* Profile section for configuring icon color and name */}
             {profileMenuOpen && (
-                <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 4000, background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(44,83,100,0.18)', padding: 32, minWidth: 320, maxWidth: 380, cursor: 'default' }}>
+                <div
+                    className="profile-menu-fullscreen"
+                    style={{
+                        position: 'fixed',
+                        bottom: 24,
+                        right: 24,
+                        zIndex: 4000,
+                        background: '#fff',
+                        borderRadius: 16,
+                        boxShadow: '0 4px 24px rgba(44,83,100,0.18)',
+                        padding: 32,
+                        minWidth: 320,
+                        maxWidth: 380,
+                        cursor: 'default'
+                    }}
+                >
+                    <button onClick={() => setProfileMenuOpen(false)} style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', fontSize: 22, color: '#009fe3', cursor: 'pointer', fontWeight: 700, lineHeight: 1 }} aria-label="Close profile menu">&times;</button>
                     <h2 style={{ margin: '0 0 18px 0', fontSize: 24, color: '#009fe3', fontWeight: 700 }}>Profile</h2>
                     <div style={{ marginBottom: 18 }}>
                         <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Name</label>
@@ -229,7 +294,7 @@ function App() {
                             type="text"
                             value={profile.name}
                             onChange={e => setProfile(p => ({ ...p, name: e.target.value }))}
-                            style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc', width: '100%', fontSize: 16 }}
+                            style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc', width: '95%', fontSize: 16 }}
                         />
                     </div>
                     <div style={{ marginBottom: 18 }}>
@@ -243,7 +308,7 @@ function App() {
                         <button style={{ width: '100%', padding: '10px 0', background: '#e6f4fa', color: '#009fe3', border: 'none', borderRadius: 6, fontSize: 16, fontWeight: 600, cursor: 'pointer' }}>Change Password</button>
                     </div>
                     <div style={{ marginBottom: 18 }}>
-                        <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Icon color</label>
+                        <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Marker color</label>
                         <input
                             type="color"
                             value={profile.color}

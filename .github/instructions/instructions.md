@@ -53,6 +53,12 @@ Multi-platform: Android/iOS/any fastest to deliver (mobile-first priority)
 
 Offline mode (basic cached view, sync when online)
 
+End user position tracking and live view
+
+IEC 62443 compliant
+
+ISO/IEC 27001:2022
+
 Bonus: System topology map (visualizing connections between assets like IT topology view)
 
 4.2 Data Engineer Webform Interface
