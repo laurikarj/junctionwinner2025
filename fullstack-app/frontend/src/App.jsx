@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 // For charts
 import {
-    LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 
 // AnalyticsPage component must be outside App
@@ -372,15 +372,15 @@ function App() {
         'Lauri Kristian Relander',
         'Pehr Evind Svinhufvud',
         'Kyösti Kallio',
-        'Risto Ryti',
+        'Risto Heikki Ryti',
         'Carl Gustaf Emil Mannerheim',
         'Juho Kusti Paasikivi',
-        'Urho Kekkonen',
-        'Mauno Koivisto',
-        'Martti Ahtisaari',
-        'Tarja Halonen',
-        'Sauli Niinistö',
-        'Alexander Stubb'
+        'Urho Kaleva Kekkonen',
+        'Mauno Henrik Koivisto',
+        'Martti Oiva Kalevi Ahtisaari',
+        'Tarja Kaarina Halonen',
+        'Sauli Väinämö Niinistö',
+        'Cai-Göran Alexander Stubb'
     ];
     // Profile state for icon color (hue) and name
     const [profile, setProfile] = React.useState({
@@ -653,11 +653,11 @@ function App() {
                     )}
                   </div>
                 )}
-                                {page === 'analytics' && (
-                                    <div style={analyticsContainerStyle}>
-                                        <AnalyticsPage />
-                                    </div>
-                                )}
+                {page === 'analytics' && (
+                    <div style={analyticsContainerStyle}>
+                        <AnalyticsPage />
+                    </div>
+                )}
             </div>
         </>
     );
