@@ -68,8 +68,8 @@ export default function NewSiteDialog({
                 <button
                     style={{ width: '100%', padding: '10px 0', background: '#009fe3', color: '#fff', border: 'none', borderRadius: 6, fontSize: 18, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}
                     disabled={!newSite.name || !newSite.location}
-                    onClick={() => {
-                        setSites(sites => [...sites, { ...newSite }]);
+                    onClick={async () => {
+                        await setSites({ ...newSite });
                         setShowSiteDialog(false);
                     }}
                 >Add Site</button>

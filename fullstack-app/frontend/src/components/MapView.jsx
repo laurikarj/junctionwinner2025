@@ -23,6 +23,42 @@ function MapView({
     setShowSiteDialog: setShowSiteDialogProp
 }) {
     const [sites, setSites] = useState([]);
+    const [editSiteIdx, setEditSiteIdx] = useState(null);
+    const [editSite, setEditSite] = useState(null);
+
+    // Load sites from backend on mount
+    useEffect(() => {
+        fetch('/api/sites')
+            .then(res => res.json())
+            .then(data => setSites(data))
+            .catch(() => setSites([]));
+    }, []);
+
+    // Helper to add a site to backend
+    const addSite = async (site) => {
+        const res = await fetch('/api/sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(site)
+        });
+        if (res.ok) {
+            const newSite = await res.json();
+            setSites(sites => [...sites, newSite]);
+        }
+    };
+
+    // Helper to update a site in backend
+    const updateSite = async (idx, site) => {
+        const res = await fetch(`/api/sites/${idx}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(site)
+        });
+        if (res.ok) {
+            const updated = await res.json();
+            setSites(sites => sites.map((s, i) => i === idx ? updated : s));
+        }
+    };
     const [showSiteDialog, setShowSiteDialog] = useState(false);
     React.useEffect(() => {
         if (typeof setShowSiteDialogProp === 'function') {
@@ -54,10 +90,33 @@ function MapView({
             );
         }
     }, [setCurrentPosition]);
+    // Only set crosshair cursor on the map area, not the dialog
+    const mapContainerStyle = {
+        width: '100%',
+        height: 'calc(100vh - 73px)',
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden',
+        position: 'relative',
+    };
+    // Add crosshair cursor to the Leaflet map container only
+    useEffect(() => {
+        const mapRoot = document.querySelector('.leaflet-container');
+        if (mapRoot) {
+            if (showSiteDialog) {
+                mapRoot.style.cursor = 'crosshair';
+            } else {
+                mapRoot.style.cursor = '';
+            }
+        }
+        return () => {
+            if (mapRoot) mapRoot.style.cursor = '';
+        };
+    }, [showSiteDialog]);
     return (
         <div
             key={`dashboard-map-${currentPosition ? currentPosition.join('-') : 'default'}`}
-            style={{ width: '100%', height: 'calc(100vh - 73px)', margin: 0, padding: 0, overflow: 'hidden', position: 'relative' }}
+            style={mapContainerStyle}
             onClick={() => { if(fabOpen){setFabOpen(false);} if(profileMenuOpen){setProfileMenuOpen(false);} }}
         >
             <MapContainer
@@ -76,7 +135,10 @@ function MapView({
                         <Popup>{'You: ' + profile.name}</Popup>
                     </Marker>
                 )}
-                <SiteMarkers sites={sites} />
+                <SiteMarkers sites={sites} onEdit={idx => {
+                    setEditSiteIdx(idx);
+                    setEditSite({ ...sites[idx] });
+                }} />
                 {/* Show a marker for the new site location while picking */}
                 {showSiteDialog && newSite.location && (
                     <Marker
@@ -168,14 +230,137 @@ function MapView({
                     </div>
                 )}
             </div>
-            <NewSiteDialog
-                showSiteDialog={showSiteDialog}
-                setShowSiteDialog={setShowSiteDialog}
-                newSite={newSite}
-                setNewSite={setNewSite}
-                currentPosition={currentPosition}
-                setSites={setSites}
-            />
+            <div style={{ pointerEvents: 'none' }}>
+                <div style={{ pointerEvents: 'auto' }}>
+                    <NewSiteDialog
+                        showSiteDialog={showSiteDialog}
+                        setShowSiteDialog={setShowSiteDialog}
+                        newSite={newSite}
+                        setNewSite={setNewSite}
+                        currentPosition={currentPosition}
+                        setSites={site => addSite(site)}
+                    />
+                </div>
+                {/* Edit Site Dialog */}
+                {editSiteIdx !== null && editSite && (
+                    <div style={{
+                        pointerEvents: 'auto',
+                        position: 'fixed',
+                        bottom: 32,
+                        right: 32,
+                        zIndex: 5000,
+                    }}>
+                        <div style={{
+                            background: '#fff',
+                            borderRadius: 14,
+                            boxShadow: '0 4px 24px rgba(44,83,100,0.18)',
+                            padding: 28,
+                            minWidth: 320,
+                            maxWidth: 380,
+                            position: 'relative',
+                        }}>
+                            <button onClick={() => { setEditSiteIdx(null); setEditSite(null); }} style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', fontSize: 22, color: '#009fe3', cursor: 'pointer', fontWeight: 700, lineHeight: 1 }} aria-label="Close">&times;</button>
+                            <h2 style={{ margin: '0 0 18px 0', fontSize: 22, color: '#009fe3', fontWeight: 700 }}>Edit Site</h2>
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Name</label>
+                                <input
+                                    type="text"
+                                    value={editSite.name}
+                                    onChange={e => setEditSite(s => ({ ...s, name: e.target.value }))}
+                                    style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc', width: '95%', fontSize: 16 }}
+                                    placeholder="Site name"
+                                />
+                            </div>
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Location</label>
+                                <input
+                                    type="text"
+                                    value={editSite.location ? editSite.location.join(', ') : ''}
+                                    readOnly
+                                    style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc', width: '95%', fontSize: 16, background: '#f7f7f7' }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: 16, display: 'flex', gap: 16 }}>
+                                <label style={{ fontWeight: 500 }}>
+                                    <input type="checkbox" checked={editSite.online} onChange={e => setEditSite(s => ({ ...s, online: e.target.checked }))} /> Online
+                                </label>
+                                <label style={{ fontWeight: 500 }}>
+                                    <input type="checkbox" checked={editSite.inService} onChange={e => setEditSite(s => ({ ...s, inService: e.target.checked }))} /> In Service
+                                </label>
+                            </div>
+                            <button
+                                style={{ width: '100%', padding: '10px 0', background: '#009fe3', color: '#fff', border: 'none', borderRadius: 6, fontSize: 18, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}
+                                disabled={!editSite.name || !editSite.location}
+                                onClick={async () => {
+                                    await updateSite(editSiteIdx, editSite);
+                                    setEditSiteIdx(null);
+                                    setEditSite(null);
+                                }}
+                            >Save Changes</button>
+                        </div>
+                    </div>
+                )}
+            </div>
+            {/* Edit Site Dialog */}
+            {editSiteIdx !== null && editSite && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: 32,
+                    right: 32,
+                    zIndex: 5000,
+                    pointerEvents: 'none',
+                }}>
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: 14,
+                        boxShadow: '0 4px 24px rgba(44,83,100,0.18)',
+                        padding: 28,
+                        minWidth: 320,
+                        maxWidth: 380,
+                        position: 'relative',
+                        pointerEvents: 'auto',
+                    }}>
+                        <button onClick={() => { setEditSiteIdx(null); setEditSite(null); }} style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', fontSize: 22, color: '#009fe3', cursor: 'pointer', fontWeight: 700, lineHeight: 1 }} aria-label="Close">&times;</button>
+                        <h2 style={{ margin: '0 0 18px 0', fontSize: 22, color: '#009fe3', fontWeight: 700 }}>Edit Site</h2>
+                        <div style={{ marginBottom: 16 }}>
+                            <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Name</label>
+                            <input
+                                type="text"
+                                value={editSite.name}
+                                onChange={e => setEditSite(s => ({ ...s, name: e.target.value }))}
+                                style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc', width: '95%', fontSize: 16 }}
+                                placeholder="Site name"
+                            />
+                        </div>
+                        <div style={{ marginBottom: 16 }}>
+                            <label style={{ fontWeight: 500, display: 'block', marginBottom: 4 }}>Location</label>
+                            <input
+                                type="text"
+                                value={editSite.location ? editSite.location.join(', ') : ''}
+                                readOnly
+                                style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc', width: '95%', fontSize: 16, background: '#f7f7f7' }}
+                            />
+                        </div>
+                        <div style={{ marginBottom: 16, display: 'flex', gap: 16 }}>
+                            <label style={{ fontWeight: 500 }}>
+                                <input type="checkbox" checked={editSite.online} onChange={e => setEditSite(s => ({ ...s, online: e.target.checked }))} /> Online
+                            </label>
+                            <label style={{ fontWeight: 500 }}>
+                                <input type="checkbox" checked={editSite.inService} onChange={e => setEditSite(s => ({ ...s, inService: e.target.checked }))} /> In Service
+                            </label>
+                        </div>
+                        <button
+                            style={{ width: '100%', padding: '10px 0', background: '#009fe3', color: '#fff', border: 'none', borderRadius: 6, fontSize: 18, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}
+                            disabled={!editSite.name || !editSite.location}
+                            onClick={() => {
+                                setSites(sites => sites.map((s, i) => i === editSiteIdx ? { ...editSite } : s));
+                                setEditSiteIdx(null);
+                                setEditSite(null);
+                            }}
+                        >Save Changes</button>
+                    </div>
+                </div>
+            )}
             <ProfileMenu
                 profileMenuOpen={profileMenuOpen}
                 setProfileMenuOpen={setProfileMenuOpen}

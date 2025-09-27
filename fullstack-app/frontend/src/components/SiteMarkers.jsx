@@ -2,7 +2,7 @@ import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
-export default function SiteMarkers({ sites }) {
+export default function SiteMarkers({ sites, onEdit }) {
     return (
         <>
             {sites.map((site, idx) => (
@@ -21,7 +21,8 @@ export default function SiteMarkers({ sites }) {
                         <div>
                             <strong>Site: {site.name}</strong><br/>
                             Status: <span style={{color: site.online ? '#009fe3' : '#aaa'}}>{site.online ? 'Online' : 'Offline'}</span><br/>
-                            {site.inService && <span style={{color:'#fbc02d'}}>In Service</span>}
+                            {site.inService && <span style={{color:'#fbc02d'}}>In Service</span>}<br/>
+                            <button style={{marginTop:8,background:'#009fe3',color:'#fff',border:'none',borderRadius:5,padding:'4px 12px',cursor:'pointer'}} onClick={() => onEdit(idx)}>Edit</button>
                         </div>
                     </Popup>
                 </Marker>
