@@ -361,6 +361,8 @@ function AnalyticsPage() {
 }
 
 function App() {
+    // FAB state for map
+    const [fabOpen, setFabOpen] = React.useState(false);
     const [currentPosition, setCurrentPosition] = React.useState(null);
     const [menuOpen, setMenuOpen] = React.useState(false);
     const [page, setPage] = React.useState('map');
@@ -493,10 +495,12 @@ function App() {
                 </header>
                                 {page === 'map' && (
                                     // ...existing code...
-                  <div
-                    key={`dashboard-map-${page}-${currentPosition ? currentPosition.join('-') : 'default'}`}
-                    style={{ width: '100%', height: 'calc(100vh - 73px)', margin: 0, padding: 0, overflow: 'hidden' }}
-                  >
+                                    <div
+                                        key={`dashboard-map-${page}-${currentPosition ? currentPosition.join('-') : 'default'}`}
+                                        style={{ width: '100%', height: 'calc(100vh - 73px)', margin: 0, padding: 0, overflow: 'hidden', position: 'relative' }}
+                                        
+                        onPointerDown={() => { if(fabOpen){setFabOpen(false);} if(profileMenuOpen){setProfileMenuOpen(false);} }}
+                                    >
                     <MapContainer
                         center={currentPosition || [60.1699, 24.9384]}
                         zoom={12}
@@ -513,6 +517,72 @@ function App() {
                             </Marker>
                         )}
                     </MapContainer>
+                    {/* Floating Action Button (FAB) for new site/asset */}
+                    <div style={{ position: 'absolute', left: 24, bottom: 32, zIndex: 4100 }}>
+                        <button
+                            aria-label="Add"
+                            onClick={() => setFabOpen(fab => !fab)}
+                            style={{
+                                width: 56,
+                                height: 56,
+                                borderRadius: '50%',
+                                background: '#009fe3',
+                                color: '#fff',
+                                border: 'none',
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.18)',
+                                fontSize: 32,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s',
+                            }}
+                        >
+                            <span style={{ fontWeight: 700, fontSize: 36, lineHeight: 1 }}>+</span>
+                        </button>
+                        {fabOpen && (
+                            <div style={{
+                                position: 'absolute',
+                                left: 0,
+                                bottom: 70,
+                                background: '#fff',
+                                borderRadius: 10,
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.13)',
+                                padding: '8px 0',
+                                minWidth: 120,
+                            }}>
+                                <button style={{
+                                    width: '100%',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#009fe3',
+                                    fontWeight: 600,
+                                    fontSize: 17,
+                                    padding: '10px 18px',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    borderBottom: '1px solid #e0e0e0',
+                                    outline: 'none',
+                                }}
+                                onClick={() => { setFabOpen(false); alert('New site clicked!'); }}
+                                >New site</button>
+                                <button style={{
+                                    width: '100%',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#009fe3',
+                                    fontWeight: 600,
+                                    fontSize: 17,
+                                    padding: '10px 18px',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    outline: 'none',
+                                }}
+                                onClick={() => { setFabOpen(false); alert('New asset clicked!'); }}
+                                >New asset</button>
+                            </div>
+                        )}
+                    </div>
                     {/* Profile section for configuring icon color and name */}
                     {profileMenuOpen && (
                         <div
