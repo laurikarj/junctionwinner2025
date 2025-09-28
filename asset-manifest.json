@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/junctionwinner2025/static/css/main.f9fce2fd.css",
+    "main.js": "/junctionwinner2025/static/js/main.0970d33e.js",
+    "static/media/fa-solid-900.woff2": "/junctionwinner2025/static/media/fa-solid-900.0ae4e6254fc19607c79e.woff2",
+    "static/media/fa-brands-400.woff2": "/junctionwinner2025/static/media/fa-brands-400.e7461d69dbbff1310a5c.woff2",
+    "static/media/fa-regular-400.woff2": "/junctionwinner2025/static/media/fa-regular-400.1f38a564cd9eae27ebc3.woff2",
+    "static/media/fa-v4compatibility.woff2": "/junctionwinner2025/static/media/fa-v4compatibility.661bd6b7245d5205d3e1.woff2",
+    "index.html": "/junctionwinner2025/index.html",
+    "main.f9fce2fd.css.map": "/junctionwinner2025/static/css/main.f9fce2fd.css.map",
+    "main.0970d33e.js.map": "/junctionwinner2025/static/js/main.0970d33e.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f9fce2fd.css",
+    "static/js/main.0970d33e.js"
+  ]
+}
