@@ -5,7 +5,7 @@ function SetViewToCurrentLocation({ position }) {
     const map = useMap();
     useEffect(() => {
         if (position) {
-            map.setView(position, map.getZoom(), { animate: true });
+            map.setView(position, map.getZoom(), { animate: true, duration: 1.0 });
         }
     }, [position, map]);
     return null;

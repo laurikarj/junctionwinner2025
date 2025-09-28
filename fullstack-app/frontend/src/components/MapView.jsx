@@ -1,15 +1,16 @@
-import AssetDialog from './AssetDialog';
 import React, { useEffect, useState, useRef } from 'react';
+import useSites from './useSites';
+import SiteSelectorDialog from './SiteSelectorDialog';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import L from 'leaflet';
+import AssetDialog from './AssetDialog';
 import SetViewToCurrentLocation from './SetViewToCurrentLocation';
 import MapClickHandler from './MapClickHandler';
 import SiteMarkers from './SiteMarkers';
 import NewSiteDialog from './NewSiteDialog';
 import ProfileMenu from './ProfileMenu';
-
 
 function MapView({
     fabOpen,
@@ -25,7 +26,17 @@ function MapView({
     showSearchBar,
     setShowSearchBar
 }) {
-    const [sites, setSites] = useState([]);
+    // State for site selector for new asset
+    const [showSiteSelector, setShowSiteSelector] = useState(false);
+    const [siteForNewAsset, setSiteForNewAsset] = useState(null);
+
+    // Handler for selecting site for new asset
+    const handleSelectSiteForAsset = (siteIdx) => {
+        setShowSiteSelector(false);
+        setSiteForNewAsset(siteIdx);
+        setShowAssetDialog(true);
+    };
+    const { sites, setSites, addSite, updateSite, deleteSite } = useSites();
     const [editSiteIdx, setEditSiteIdx] = useState(null);
     const [editSite, setEditSite] = useState(null);
     const [showAssetDialog, setShowAssetDialog] = useState(false);
@@ -34,13 +45,18 @@ function MapView({
     const mapRef = useRef();
     const [routeTo, setRouteTo] = useState(null);
 
-    // Load sites from backend on mount
-    useEffect(() => {
-        fetch('/api/sites')
-            .then(res => res.json())
-            .then(data => setSites(data))
-            .catch(() => setSites([]));
-    }, []);
+
+    // Component to zoom out to fit route using real Leaflet map instance
+    function FitBoundsOnRoute({ routeTo, currentPosition }) {
+        const map = useMap();
+        useEffect(() => {
+            if (routeTo && currentPosition) {
+                const bounds = L.latLngBounds([currentPosition, routeTo.location]);
+                map.fitBounds(bounds, { padding: [80, 80], maxZoom: 16, animate: true, duration: 1.0 });
+            }
+        }, [routeTo, currentPosition, map]);
+        return null;
+    }
 
     // Search logic: match site name or any asset name/id
     useEffect(() => {
@@ -56,41 +72,6 @@ function MapView({
         setSearchResults(results);
     }, [search, sites]);
 
-    // Helper to add a site to backend
-    const addSite = async (site) => {
-        const res = await fetch('/api/sites', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(site)
-        });
-        if (res.ok) {
-            const newSite = await res.json();
-            setSites(sites => [...sites, newSite]);
-        }
-    };
-
-    // Helper to update a site in backend
-    const updateSite = async (idx, site) => {
-        const res = await fetch(`/api/sites/${idx}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(site)
-        });
-        if (res.ok) {
-            const updated = await res.json();
-            setSites(sites => sites.map((s, i) => i === idx ? updated : s));
-        }
-    };
-
-    // Helper to delete a site in backend
-    const deleteSite = async (idx) => {
-        const res = await fetch(`/api/sites/${idx}`, {
-            method: 'DELETE'
-        });
-        if (res.ok) {
-            setSites(sites => sites.filter((_, i) => i !== idx));
-        }
-    };
     const [showSiteDialog, setShowSiteDialog] = useState(false);
     React.useEffect(() => {
         if (typeof setShowSiteDialogProp === 'function') {
@@ -151,7 +132,7 @@ function MapView({
         const map = useMap();
         useEffect(() => {
             if (position) {
-                map.setView(position, 16, { animate: true });
+                map.setView(position, 16, { animate: true, duration: 1.0 });
                 if (onCentered) {
                     // Wait for the map to finish moving, then call onCentered
                     setTimeout(onCentered, 400);
@@ -200,8 +181,12 @@ function MapView({
                                         setCenterOn(site.location);
                                         setSearch('');
                                         setShowSearchBar(false);
-                                        setSelectedSiteId(site.id);
-                                        setSelectedSiteIdx(sites.findIndex(s => (s.id || s.name) === (site.id || site.name)));
+                                        // Force popup to open even for same site by resetting idx
+                                        setSelectedSiteId(null);
+                                        setSelectedSiteIdx(null);
+                                        setTimeout(() => {
+                                            setSelectedSiteIdx(sites.findIndex(s => (s.id || s.name) === (site.id || site.name)));
+                                        }, 0);
                                     }}
                                 >
                                     <strong>{site.name}</strong><br/>
@@ -222,6 +207,8 @@ function MapView({
                 style={{ width: '100%', height: '100%' }}
                 whenCreated={mapInstance => { mapRef.current = mapInstance; }}
             >
+                {/* Fit bounds to route when route is shown */}
+                <FitBoundsOnRoute routeTo={routeTo} currentPosition={currentPosition} />
                 {centerOn && <CenterMap position={centerOn} onCentered={() => setCenterOn(null)} />}
                 <MapClickHandler showSiteDialog={showSiteDialog} setNewSite={setNewSite} />
                 <TileLayer
@@ -341,11 +328,22 @@ function MapView({
                             cursor: 'pointer',
                             outline: 'none',
                         }}
-                        onClick={() => { setFabOpen(false); alert('New asset clicked!'); }}
+                        onClick={() => {
+                            setFabOpen(false);
+                            setShowSiteSelector(true);
+                        }}
                         >New asset</button>
                     </div>
                 )}
             </div>
+            {/* Site selector dialog for new asset */}
+            {showSiteSelector && (
+                <SiteSelectorDialog
+                    sites={sites}
+                    onSelect={handleSelectSiteForAsset}
+                    onCancel={() => setShowSiteSelector(false)}
+                />
+            )}
             <div style={{ pointerEvents: 'none' }}>
                 <div style={{ pointerEvents: 'auto' }}>
                     <NewSiteDialog
@@ -356,6 +354,27 @@ function MapView({
                         currentPosition={currentPosition}
                         setSites={site => addSite(site)}
                     />
+                    {/* AssetDialog for new asset creation (siteForNewAsset !== null) */}
+                    {siteForNewAsset !== null && showAssetDialog && (
+                        <AssetDialog
+                            open={showAssetDialog}
+                            onClose={() => {
+                                setShowAssetDialog(false);
+                                setSiteForNewAsset(null);
+                            }}
+                            onSave={async asset => {
+                                // Add asset to selected site
+                                const updated = {
+                                    ...sites[siteForNewAsset],
+                                    assets: [...(sites[siteForNewAsset].assets || []), asset]
+                                };
+                                await updateSite(siteForNewAsset, updated);
+                                setSites(sites => sites.map((s, i) => i === siteForNewAsset ? updated : s));
+                                setShowAssetDialog(false);
+                                setSiteForNewAsset(null);
+                            }}
+                        />
+                    )}
                 </div>
                 {/* Edit Site Dialog */}
                 {editSiteIdx !== null && editSite && (
