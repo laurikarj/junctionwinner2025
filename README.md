@@ -12,7 +12,7 @@
 
 <video width="600" controls>
   <source src="Recording 2025-09-28 115459.mp4" type="video/mp4">
-  Your browser does not support the video tag.
 </video>
 
-[Download the video](Recording%202025-09-28%20115459.mp4)
+[Demo video](https://www.youtube.com/watch?v=RcchipYc8Ag)
+[Another demo video](Recording%202025-09-28%20115459.mp4)
