@@ -24,7 +24,8 @@ function MapView({
     setProfileMenuOpen,
     setShowSiteDialog: setShowSiteDialogProp,
     showSearchBar,
-    setShowSearchBar
+    setShowSearchBar,
+    onLogout
 }) {
     // State for site selector for new asset
     const [showSiteSelector, setShowSiteSelector] = useState(false);
@@ -476,6 +477,7 @@ function MapView({
                 profile={profile}
                 setProfile={setProfile}
                 markerColor={markerColor}
+                onLogout={onLogout}
             />
         </div>
     );

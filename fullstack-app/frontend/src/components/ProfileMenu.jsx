@@ -5,7 +5,8 @@ export default function ProfileMenu({
     setProfileMenuOpen,
     profile,
     setProfile,
-    markerColor
+    markerColor,
+    onLogout
 }) {
     if (!profileMenuOpen) return null;
     return (
@@ -73,6 +74,12 @@ export default function ProfileMenu({
                 onClick={() => setProfileMenuOpen(false)}
             >
                 Save Changes
+            </button>
+            <button
+                style={{ width: '100%', padding: '10px 0', background: '#e53935', color: '#fff', border: 'none', borderRadius: 6, fontSize: 18, fontWeight: 600, cursor: 'pointer', marginTop: 12 }}
+                onClick={onLogout}
+            >
+                Log out
             </button>
         </div>
     );
