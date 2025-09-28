@@ -15,9 +15,22 @@ export default function LoginPage({ onLogin }) {
     onLogin(email);
   };
 
+  // Offset for header height (64px)
   return (
-  <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f7fbff', fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif' }}>
-      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: 32, borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.13)', minWidth: 320 }}>
+    <div style={{
+      position: 'absolute',
+      top: 73,
+      left: 0,
+      width: '100vw',
+      height: 'calc(100vh - 64px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#f7fbff',
+      fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
+      zIndex: 10
+    }}>
+      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: 32, borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.13)', minWidth: 320, maxWidth: 360, width: '100%' }}>
         <h2 style={{ marginTop: 0, marginBottom: 24, color: '#009fe3', fontWeight: 700 }}>Login</h2>
         <div style={{ marginBottom: 18 }}>
           <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Email</label>
