@@ -11,6 +11,18 @@ import './App.css';
 
 
 function App() {
+    const [deferredPrompt, setDeferredPrompt] = React.useState(null);
+    const [showInstallDialog, setShowInstallDialog] = React.useState(false);
+
+    React.useEffect(() => {
+        const handler = (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+            setShowInstallDialog(true);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, []);
     const [userEmail, setUserEmail] = React.useState(null);
     // FAB state for map
     const [fabOpen, setFabOpen] = React.useState(false);
@@ -107,11 +119,57 @@ function App() {
         return <>
             {header}
             <LoginPage onLogin={setUserEmail} />
+            {showInstallDialog && (
+                <div style={{ position: 'fixed', top: 73, left: 0, width: '100vw', height: '100vh', background: '#eee', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif' }}>
+                    <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.13)', padding: 32, minWidth: 320, textAlign: 'center', fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif' }}>
+                        <h3 style={{ marginTop: 0 }}>Install this app?</h3>
+                        <p style={{ color: '#333', marginBottom: 24 }}>Add PowerPulse to your home screen for a better experience.</p>
+                        <button style={{ background: '#009fe3', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 28px', fontSize: 18, fontWeight: 600, cursor: 'pointer', marginRight: 12 }}
+                            onClick={async () => {
+                                if (deferredPrompt) {
+                                    deferredPrompt.prompt();
+                                    const choiceResult = await deferredPrompt.userChoice;
+                                    if (choiceResult.outcome === 'accepted') {
+                                        setShowInstallDialog(false);
+                                        setDeferredPrompt(null);
+                                    }
+                                }
+                            }}
+                        >Install</button>
+                        <button style={{ background: '#eee', color: '#333', border: 'none', borderRadius: 6, padding: '10px 18px', fontSize: 16, fontWeight: 600, cursor: 'pointer' }}
+                            onClick={() => setShowInstallDialog(false)}
+                        >Cancel</button>
+                    </div>
+                </div>
+            )}
         </>;
     }
     return (
         <>
             {/* CSS moved to App.css */}
+            {showInstallDialog && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 16px rgba(0,0,0,0.13)', padding: 32, minWidth: 320, textAlign: 'center' }}>
+                        <h3 style={{ marginTop: 0 }}>Install this app?</h3>
+                        <p style={{ color: '#333', marginBottom: 24 }}>Add PowerPulse to your home screen for a better experience.</p>
+                        <button style={{ background: '#009fe3', color: '#fff', border: 'none', borderRadius: 6, padding: '10px 28px', fontSize: 18, fontWeight: 600, cursor: 'pointer', marginRight: 12 }}
+                            onClick={async () => {
+                                if (deferredPrompt) {
+                                    deferredPrompt.prompt();
+                                    const choiceResult = await deferredPrompt.userChoice;
+                                    if (choiceResult.outcome === 'accepted') {
+                                        setShowInstallDialog(false);
+                                        setDeferredPrompt(null);
+                                    }
+                                }
+                            }}
+                        >Install</button>
+                        <button style={{ background: '#eee', color: '#333', border: 'none', borderRadius: 6, padding: '10px 18px', fontSize: 16, fontWeight: 600, cursor: 'pointer' }}
+                            onClick={() => setShowInstallDialog(false)}
+                        >Cancel</button>
+                    </div>
+                </div>
+            )}
             <div style={mainDivStyle}>
                 <header style={{ background: '#009fe3', color: '#fff', padding: '8px 8px 3px 8px', boxShadow: '0 6px 24px 0 rgba(0,0,0,0.18)', borderBottom: '1px solid #007bb8', zIndex: 1000, position: 'fixed', top: 0, left: 0, width: '100%', appRegion: 'drag', textSelect: 'none', minHeight: headerHeight }}>
                     <div style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'left', position: 'relative' }}>
